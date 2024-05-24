@@ -1,0 +1,105 @@
+{
+  "name": "reablocks-cli",
+  "version": "0.0.0-development",
+  "description": "A CLI for configuring Reablocks in your project.",
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "reablocks",
+    "url": "https://www.reablocks.dev/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reaviz/reablocks-cli.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "reablocks",
+    "reactjs",
+    "tailwind",
+    "components",
+    "ui-system"
+  ],
+  "type": "module",
+  "exports": "./dist/index.js",
+  "bin": "./dist/index.js",
+  "scripts": {
+    "dev": "tsup --watch",
+    "prebuild": "rm -rf dist",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "test": "ts-node src/test.ts",
+    "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache",
+    "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache",
+    "release": "changeset version",
+    "pub:beta": "pnpm build && pnpm publish --no-git-checks --access public --tag beta",
+    "pub:next": "pnpm build && pnpm publish --no-git-checks --access public --tag next",
+    "pub:release": "pnpm build && pnpm publish --access public",
+    "semantic-release": "semantic-release"
+  },
+  "dependencies": {
+    "chalk": "5.2.0",
+    "commander": "^10.0.1",
+    "execa": "^7.2.0",
+    "fs-extra": "^11.2.0",
+    "https-proxy-agent": "^6.2.1",
+    "ora": "^6.3.1",
+    "prompts": "^2.4.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@semantic-release/commit-analyzer": "^10.0.4",
+    "@semantic-release/github": "^9.2.6",
+    "@semantic-release/npm": "^10.0.6",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.11.5",
+    "@types/prompts": "^2.4.9",
+    "conventional-changelog-conventionalcommits": "^6.1.0",
+    "i": "^0.3.7",
+    "install": "^0.13.0",
+    "node-fetch": "^2.7.0",
+    "rimraf": "^4.4.1",
+    "semantic-release": "^21.1.2",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "tslib": "^2.6.2",
+    "tsup": "^6.7.0",
+    "type-fest": "^3.13.1",
+    "typescript": "^4.9.5"
+  },
+  "release": {
+    "branches": [
+      "main",
+      {
+        "name": "beta",
+        "prerelease": true
+      },
+      {
+        "name": "beta-*",
+        "prerelease": true
+      }
+    ],
+    "plugins": [
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "preset": "conventionalcommits",
+          "releaseRules": [
+            {
+              "type": "build",
+              "release": "minor"
+            }
+          ]
+        }
+      ],
+      "@semantic-release/npm",
+      "@semantic-release/github"
+    ]
+  },
+  "packageManager": "pnpm@9.1.1+sha1.09ada6cd05003e0ced25fb716f9fda4063ec2e3b"
+}
