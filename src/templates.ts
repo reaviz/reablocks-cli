@@ -109,8 +109,14 @@ export const THEME = `{
         level3: colorPalette.gray[900],
         level4: colorPalette.gray[800],
       },
-      panel: colorPalette['black-pearl'],
-      surface: colorPalette['charade'],
+      panel: {
+        DEFAULT: colorPalette['black-pearl'],
+        accent: colorPalette['charade']
+      },
+      surface: {
+        DEFAULT: colorPalette['charade'],
+        accent: colorPalette.blue[500]
+      },
       typography: {
         DEFAULT: colorPalette['athens-gray'],
       },
