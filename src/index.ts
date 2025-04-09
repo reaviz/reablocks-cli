@@ -99,7 +99,7 @@ async function main() {
       const tailwindcssSpinner = ora(`Installing tailwindcss...`).start();
       await execa(packageManager, [
         packageManager === "npm" ? "install" : "add",
-        "tailwindcss@latest",
+        "tailwindcss@4.1.3",
         packageManager === "npm" || packageManager === "pnpm"
           ? "--save-dev"
           : "--dev",
@@ -122,16 +122,6 @@ async function main() {
           : "--dev",
       ]);
       postcssSpinner.succeed();
-
-      const autprefixerSpinner = ora(`Installing autoprefixer...`).start();
-      await execa(packageManager, [
-        packageManager === "npm" ? "install" : "add",
-        "autoprefixer@latest",
-        packageManager === "npm" || packageManager === "pnpm"
-          ? "--save-dev"
-          : "--dev",
-      ]);
-      autprefixerSpinner.succeed();
 
       const cssSpinner = ora(
         'Inserting css...'
