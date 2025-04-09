@@ -1,6 +1,7 @@
 export function getTailwindCss() {
   return `
 @import 'tailwindcss';
+@source '../node_modules/reablocks';
 
 /* Color palette */
 :root,
