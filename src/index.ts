@@ -3,13 +3,15 @@ import path from "path";
 import fs from "fs-extra";
 import { type PackageJson } from "type-fest";
 import { Command } from "commander";
+import { getViteConfig } from './utils/get-vite-config';
 import { logger } from "./utils/logger";
 import prompts from "prompts";
 import ora from "ora";
 import { execa } from "execa";
-import { getTailwindConfig } from "./utils/get-tailwind-config";
 import { getFrameworkConfigType } from "./utils/get-framework-config-type";
 import { getPackageManager } from "./utils/get-package-manager";
+import { updateIndexCss } from './utils/update-index-css';
+import { updatePostCssConfig } from './utils/update-post-css-config';
 
 export function getPackageInfo() {
   const packageJsonPath = path.join("package.json");
@@ -70,7 +72,7 @@ async function main() {
           type: "confirm",
           name: "proceed",
           message:
-            "Running this command will install dependencies and overwrite existing tailwind configurations. Proceed?",
+            "Running this command will install dependencies and modify some files. Proceed?",
           initial: true,
         });
 
@@ -79,20 +81,34 @@ async function main() {
         }
       }
 
+      const { indexCssPath } = await prompts({
+        type: "text",
+        name: "indexCssPath",
+        message: "Where is your index.css file located?",
+        initial: "src/app/globals.css",
+      });
+
       // Install reablocks
       const reablocksSpinner = ora(`Installing reablocks...`).start();
       await execa(packageManager, [
         packageManager === "npm" ? "install" : "add",
-        "reablocks",
+        "reablocks@latest",
       ]);
       reablocksSpinner.succeed();
 
       const tailwindcssSpinner = ora(`Installing tailwindcss...`).start();
       await execa(packageManager, [
         packageManager === "npm" ? "install" : "add",
-        "tailwindcss",
+        "tailwindcss@4.x",
         packageManager === "npm" || packageManager === "pnpm"
           ? "--save-dev"
+          : "--dev",
+      ]);
+      await execa(packageManager, [
+        packageManager === "npm" ? "install" : "add",
+        "@tailwindcss/postcss@latest",
+        packageManager === "npm" || packageManager === "pnpm"
+          ? "--save-dev" 
           : "--dev",
       ]);
       tailwindcssSpinner.succeed();
@@ -100,28 +116,24 @@ async function main() {
       const postcssSpinner = ora(`Installing postcss...`).start();
       await execa(packageManager, [
         packageManager === "npm" ? "install" : "add",
-        "postcss",
+        "postcss@latest",
         packageManager === "npm" || packageManager === "pnpm"
           ? "--save-dev"
           : "--dev",
       ]);
       postcssSpinner.succeed();
 
-      const autprefixerSpinner = ora(`Installing autoprefixer...`).start();
-      await execa(packageManager, [
-        packageManager === "npm" ? "install" : "add",
-        "autoprefixer",
-        packageManager === "npm" || packageManager === "pnpm"
-          ? "--save-dev"
-          : "--dev",
-      ]);
-      autprefixerSpinner.succeed();
+      const cssSpinner = ora(
+        'Inserting css...'
+      ).start();
+      await updateIndexCss(indexCssPath)
+      cssSpinner.succeed();
 
-      // Check the kind of project (TypeScript/JavaScript)
-      const isTypeScriptProject = fs.existsSync("tsconfig.json");
+      // Check the kind of tailwind (TypeScript/JavaScript)
+      const isTypeScriptConfigFile = fs.existsSync("tailwind.config.ts");
 
       // Infer the name of the tailwind config file accordingly
-      const tailwindConfigFileName = isTypeScriptProject
+      const tailwindConfigFileName = isTypeScriptConfigFile
         ? "tailwind.config.ts"
         : "tailwind.config.js";
       const tailwindDestination = `./${tailwindConfigFileName}`;
@@ -129,30 +141,35 @@ async function main() {
       // Check if the tailwind config file already exists
       const tailwindConfigFileExists = fs.existsSync(tailwindDestination);
 
-      // If the tailwind config file already exists, prompt the user to overwrite it
-      // if (tailwindConfigFileExists) {
-      //   const { overwrite } = await prompts({
-      //     type: "confirm",
-      //     name: "overwrite",
-      //     message: `A ${tailwindConfigFileName} already exists. Overwrite it?`,
-      //     initial: false,
-      //   });
+      // If the config file already exists, delete it
+      if (tailwindConfigFileExists) {
+        const deleteSpinner = ora(`Removing existing ${tailwindConfigFileName}...`).start();
+        await fs.remove(tailwindDestination);
+        deleteSpinner.succeed();
+      }
 
-      //   if (!overwrite) {
-      //     process.exit(0);
-      //   }
-      // }
+      // Updates the Vite configuration file
+      if (framework === "vite") {
+        const viteSpinner = ora(
+          `Configuring ${frameworkConfigType}...`
+        ).start();
+        await execa(packageManager, [
+          packageManager === "npm" ? "install" : "add",
+          "@tailwindcss/vite",
+          packageManager === "npm" || packageManager === "pnpm"
+            ? "--save-dev"
+            : "--dev",
+        ]);
+        await getViteConfig();
+        viteSpinner.succeed();
+      }
 
-      // Write the tailwind config file
-      const tailwindSpinner = ora(
-        `Configuring ${tailwindConfigFileName}...`
+      // Updates the PostCSS configuration file.
+      const postCssSpinner = ora(
+        `Updating postcss.config.cjs...`
       ).start();
-      await fs.writeFile(
-        tailwindDestination,
-        getTailwindConfig(frameworkConfigType),
-        "utf8"
-      );
-      tailwindSpinner.succeed();
+      await updatePostCssConfig(frameworkConfigType);
+      postCssSpinner.succeed();
     });
 
   program.parse();
