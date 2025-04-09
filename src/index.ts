@@ -99,7 +99,7 @@ async function main() {
       const tailwindcssSpinner = ora(`Installing tailwindcss...`).start();
       await execa(packageManager, [
         packageManager === "npm" ? "install" : "add",
-        "tailwindcss@4.1.3",
+        "tailwindcss@4.x",
         packageManager === "npm" || packageManager === "pnpm"
           ? "--save-dev"
           : "--dev",
