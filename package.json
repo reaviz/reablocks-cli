@@ -1,6 +1,6 @@
 {
   "name": "reablocks-cli",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "A CLI for configuring Reablocks in your project.",
   "publishConfig": {
     "access": "public"
