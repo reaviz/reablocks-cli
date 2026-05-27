@@ -93,9 +93,20 @@ export interface CssWireResult {
 }
 
 const TAILWIND_IMPORT = `@import "tailwindcss";`;
-const REABLOCKS_SOURCE = `@source "../node_modules/reablocks";`;
 const TOKENS_SUMMARY =
   "/* + reablocks theme tokens: :root color palette, @custom-variant dark/light/disabled-within, @theme inline + @theme static (marker --reablocks-theme) */";
+
+// Tailwind v4's `@source` directive is resolved relative to the CSS file's
+// own location, so the number of `../` segments depends on how deep the
+// stylesheet sits in the project. `src/index.css` needs `../node_modules`,
+// `src/app/globals.css` needs `../../node_modules`, etc.
+function reablocksSourceLineFor(cssPath: string): string {
+  const cssDir = path.dirname(cssPath);
+  const rel = path.relative(cssDir, "node_modules/reablocks");
+  // Normalize to forward slashes — CSS paths must be POSIX-style even on Windows.
+  const posix = rel.split(path.sep).join("/");
+  return `@source "${posix}";`;
+}
 
 function alreadyHasTailwindImport(content: string): boolean {
   return /@import\s+['"]tailwindcss['"]/.test(content);
@@ -129,6 +140,7 @@ export function buildCssWire(
 
   let working = content;
   const snippetParts: string[] = [];
+  const reablocksSourceLine = reablocksSourceLineFor(filePath);
 
   // 1. Ensure @import "tailwindcss"; is present at the top.
   if (!hasTw) {
@@ -146,16 +158,16 @@ export function buildCssWire(
       const insertPos = importMatch.index + importMatch[0].length;
       const needsLeadingNewline = !importMatch[0].endsWith("\n");
       const insertion =
-        (needsLeadingNewline ? "\n" : "") + REABLOCKS_SOURCE + "\n";
+        (needsLeadingNewline ? "\n" : "") + reablocksSourceLine + "\n";
       working =
         working.slice(0, insertPos) + insertion + working.slice(insertPos);
     } else {
       // Defensive: @import was either present originally or just prepended,
       // so this branch is unreachable in practice — kept so a future regex
       // tweak can't silently lose the @source insertion.
-      working = REABLOCKS_SOURCE + "\n" + working;
+      working = reablocksSourceLine + "\n" + working;
     }
-    snippetParts.push(REABLOCKS_SOURCE);
+    snippetParts.push(reablocksSourceLine);
   }
 
   // 3. Ensure the reablocks theme tokens block sits right after @source.
@@ -186,12 +198,20 @@ export function buildCssWire(
   };
 }
 
-export function tailwindCssInstructions(): string {
+export function tailwindCssInstructions(cssPath?: string): string {
+  const sourceLine = cssPath
+    ? reablocksSourceLineFor(cssPath)
+    : `@source "../node_modules/reablocks";`;
+  const pathHint = cssPath
+    ? ""
+    : "  // ↑ adjust the `..` segments to point at your project's node_modules — e.g. `../../node_modules/reablocks` for src/app/globals.css";
+
   return [
     "Add Tailwind v4 + reablocks to your main stylesheet:",
     "",
     `  ${TAILWIND_IMPORT}`,
-    `  ${REABLOCKS_SOURCE}`,
+    `  ${sourceLine}`,
+    ...(pathHint ? [pathHint] : []),
     "",
     "Plus the reablocks color palette + `@custom-variant` rules + `@theme inline` / `@theme static` token blocks.",
     "Full block: https://reablocks.dev/docs/getting-started/setup",
