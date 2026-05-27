@@ -42,6 +42,28 @@ function firstExisting(candidates: string[]): string | null {
   return null;
 }
 
+// First-best guess per framework — used as the default in the manual-path
+// prompt when auto-detection misses.
+export function suggestedCssPath(framework: Framework): string {
+  switch (framework) {
+    case "next":
+      return NEXT_APP_CSS[0];
+    case "vite":
+      return VITE_CSS[0];
+    case "react-router":
+      return REACT_ROUTER_CSS[0];
+    case "cra":
+      return CRA_CSS[0];
+    case "refine":
+      return REFINE_CSS[0];
+    case "redwood":
+      return REDWOOD_CSS[0];
+    case "other":
+    default:
+      return "src/index.css";
+  }
+}
+
 export function findCssFile(framework: Framework): string | null {
   switch (framework) {
     case "next":

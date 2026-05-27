@@ -15,6 +15,7 @@ import {
 } from "./utils/wire-theme-provider";
 import {
   findCssFile,
+  suggestedCssPath,
   buildCssWire,
   tailwindCssInstructions,
 } from "./utils/wire-tailwind-css";
@@ -194,18 +195,7 @@ async function main() {
       tailwindcssSpinner.succeed();
 
       // Wire Tailwind v4 + reablocks @source into the main stylesheet.
-      const cssSpinner = ora(
-        `Locating your main stylesheet for Tailwind v4...`
-      ).start();
-      const cssPath = findCssFile(framework);
-
-      if (!cssPath) {
-        cssSpinner.warn(`Could not auto-detect your main CSS file.`);
-        logger.info("");
-        logger.info(tailwindCssInstructions());
-      } else {
-        cssSpinner.succeed(`Found stylesheet: ${cssPath}`);
-
+      const wireCssAt = async (cssPath: string) => {
         const cssContent = await fs.readFile(cssPath, "utf8");
         const cssResult = buildCssWire(cssPath, cssContent);
 
@@ -213,15 +203,52 @@ async function main() {
           if (cssResult.message) {
             logger.info(cssResult.message);
           }
+          return;
+        }
+
+        await promptAndApply({
+          previewHeading: "Will prepend to your stylesheet:",
+          preview: cssResult.snippet,
+          target: cssPath,
+          applyingLabel: `Wiring Tailwind v4 into ${cssPath}...`,
+          writes: [{ path: cssPath, content: cssResult.newContent }],
+          instructionsOnSkip: tailwindCssInstructions(),
+        });
+      };
+
+      const cssSpinner = ora(
+        `Locating your main stylesheet for Tailwind v4...`
+      ).start();
+      const detectedCssPath = findCssFile(framework);
+
+      if (detectedCssPath) {
+        cssSpinner.succeed(`Found stylesheet: ${detectedCssPath}`);
+        await wireCssAt(detectedCssPath);
+      } else {
+        cssSpinner.warn(`Could not auto-detect your main CSS file.`);
+
+        const { manualCssPath } = await prompts({
+          type: "text",
+          name: "manualCssPath",
+          message: "Where is your main stylesheet?",
+          initial: suggestedCssPath(framework),
+        });
+
+        const trimmed = manualCssPath?.trim();
+        const resolved = trimmed ? path.resolve(trimmed) : null;
+        const exists =
+          resolved &&
+          fs.existsSync(resolved) &&
+          fs.statSync(resolved).isFile();
+
+        if (trimmed && exists) {
+          await wireCssAt(trimmed);
         } else {
-          await promptAndApply({
-            previewHeading: "Will prepend to your stylesheet:",
-            preview: cssResult.snippet,
-            target: cssPath,
-            applyingLabel: `Wiring Tailwind v4 into ${cssPath}...`,
-            writes: [{ path: cssPath, content: cssResult.newContent }],
-            instructionsOnSkip: tailwindCssInstructions(),
-          });
+          if (trimmed && !exists) {
+            logger.warn(`File not found at ${trimmed}.`);
+          }
+          logger.info("");
+          logger.info(tailwindCssInstructions());
         }
       }
 
