@@ -172,16 +172,23 @@ async function main() {
       const reablocksSpinner = ora(`Installing reablocks...`).start();
       await execa(packageManager, [
         packageManager === "npm" ? "install" : "add",
-        "reablocks",
+        "reablocks@latest",
       ]);
       reablocksSpinner.succeed();
 
       const tailwindcssSpinner = ora(`Installing tailwindcss...`).start();
       await execa(packageManager, [
         packageManager === "npm" ? "install" : "add",
-        "tailwindcss",
+        "tailwindcss@4.x",
         packageManager === "npm" || packageManager === "pnpm"
           ? "--save-dev"
+          : "--dev",
+      ]);
+      await execa(packageManager, [
+        packageManager === "npm" ? "install" : "add",
+        "@tailwindcss/postcss@latest",
+        packageManager === "npm" || packageManager === "pnpm"
+          ? "--save-dev" 
           : "--dev",
       ]);
       tailwindcssSpinner.succeed();
