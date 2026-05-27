@@ -104,12 +104,16 @@ function wireHtmlOpenTag(
   };
 
   // 1. Plain string attribute: className="foo" / class="foo"
-  const stringAttr = new RegExp(`${attrName}\\s*=\\s*"([^"]*)"`);
+  //    Accept both single and double quotes — preserve whichever style is in use.
+  const stringAttr = new RegExp(`${attrName}\\s*=\\s*(['"])([^'"]*)\\1`);
   const stringMatch = stringAttr.exec(attrs);
   if (stringMatch) {
-    const existing = stringMatch[1];
+    const quote = stringMatch[1];
+    const existing = stringMatch[2];
     const newValue = existing ? `${existing} ${themeClass}` : themeClass;
-    return finishWith(attrs.replace(stringAttr, `${attrName}="${newValue}"`));
+    return finishWith(
+      attrs.replace(stringAttr, `${attrName}=${quote}${newValue}${quote}`)
+    );
   }
 
   // 2. JSX template-literal expression: className={`...`}

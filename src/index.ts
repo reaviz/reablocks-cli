@@ -212,7 +212,7 @@ async function main() {
           target: cssPath,
           applyingLabel: `Wiring Tailwind v4 into ${cssPath}...`,
           writes: [{ path: cssPath, content: cssResult.newContent }],
-          instructionsOnSkip: tailwindCssInstructions(),
+          instructionsOnSkip: tailwindCssInstructions(cssPath),
         });
       };
 

@@ -1,4 +1,5 @@
 import path from "path";
+import fs from "fs-extra";
 import { EntryFile } from "./find-entry-file";
 
 const IMPORT_LINE = `import { ThemeProvider, theme } from 'reablocks';`;
@@ -259,6 +260,17 @@ function wireReactRouterRoot(entryPath: string, content: string): WireResult {
   };
 }
 
+function existingProvidersFile(entryPath: string): string | null {
+  const dir = path.dirname(entryPath);
+  for (const ext of ["tsx", "jsx", "ts", "js"]) {
+    const candidate = path.join(dir, `providers.${ext}`);
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
 function wireNextAppLayout(entryPath: string, content: string): WireResult {
   if (alreadyHasProvidersImport(content) || alreadyHasThemeProvider(content)) {
     return {
@@ -274,6 +286,19 @@ function wireNextAppLayout(entryPath: string, content: string): WireResult {
       changed: false,
       primary: { path: entryPath, content },
       message: `Could not locate {children} in ${entryPath}.`,
+    };
+  }
+
+  // Don't clobber a hand-written providers file. If one exists next to the
+  // layout, bail out with manual instructions — the user likely already
+  // has a Providers component for other context (TanStack Query, theming,
+  // i18n, etc.) and we don't want to overwrite it.
+  const existing = existingProvidersFile(entryPath);
+  if (existing) {
+    return {
+      changed: false,
+      primary: { path: entryPath, content },
+      message: `Found existing ${existing}; not overwriting. Wrap your existing Providers with <ThemeProvider theme={theme}> manually and re-run init.`,
     };
   }
 

@@ -202,18 +202,28 @@ export function tailwindCssInstructions(cssPath?: string): string {
   const sourceLine = cssPath
     ? reablocksSourceLineFor(cssPath)
     : `@source "../node_modules/reablocks";`;
-  const pathHint = cssPath
-    ? ""
-    : "  // ↑ adjust the `..` segments to point at your project's node_modules — e.g. `../../node_modules/reablocks` for src/app/globals.css";
 
-  return [
+  // Hint about ../ depth goes as prose AFTER the snippet so users can
+  // copy-paste the `@import` / `@source` block verbatim without picking
+  // up a stray `//` (not a valid CSS comment).
+  const lines = [
     "Add Tailwind v4 + reablocks to your main stylesheet:",
     "",
     `  ${TAILWIND_IMPORT}`,
     `  ${sourceLine}`,
-    ...(pathHint ? [pathHint] : []),
     "",
+  ];
+  if (!cssPath) {
+    lines.push(
+      "Adjust the `..` segments in @source to point at your project's node_modules",
+      "(e.g. `../../node_modules/reablocks` for src/app/globals.css).",
+      ""
+    );
+  }
+  lines.push(
     "Plus the reablocks color palette + `@custom-variant` rules + `@theme inline` / `@theme static` token blocks.",
-    "Full block: https://reablocks.dev/docs/getting-started/setup",
-  ].join("\n");
+    "Full block: https://reablocks.dev/docs/getting-started/setup"
+  );
+
+  return lines.join("\n");
 }
