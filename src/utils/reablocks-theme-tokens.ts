@@ -1,9 +1,7 @@
-export function getTailwindCss() {
-  return `
-@import 'tailwindcss';
-@source '../node_modules/reablocks';
+// Reablocks Tailwind v4 theme tokens — canonical source pasted by the user.
+// Idempotency marker: --reablocks-theme.
 
-/* Color palette */
+export const REABLOCKS_THEME_TOKENS = `/* Color palette */
 :root,
 :host {
   --reablocks-theme: dark;
@@ -140,22 +138,8 @@ export function getTailwindCss() {
 @custom-variant light (&:where(.theme-light, .theme-light *, [data-theme=light], [data-theme=light] *));
 @custom-variant disabled-within (&:has(input:is(:disabled), textarea:is(:disabled), button:is(:disabled)));
 
-/* Define theme tokens */
+/* Semantic color tokens - use inline because they reference var() */
 @theme inline {
-  /* Fonts */
-  --font-sans: Inter, sans-serif;
-  --font-mono: Fira Code, monospace;
-
-  /* Font sizes */
-  --text-xs: 0.625rem; /* 10px */
-  --text-xs--line-height: 1rem;
-  --text-sm: 0.75rem; /* 12px */
-  --text-sm--line-height: 1rem;
-  --text-base: 0.875rem; /* 14px */
-  --text-base--line-height: 1.25rem;
-  --text-lg: 1rem; /* 16px */
-  --text-lg--line-height: 1.5rem;
-
   /* Primary colors */
   --color-primary: var(--primary);
   --color-primary-active: var(--primary-active);
@@ -203,6 +187,47 @@ export function getTailwindCss() {
   /* Text colors */
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
+}
+
+/* Static theme tokens - emits CSS custom properties for runtime access */
+@theme static {
+  /* Fonts */
+  --font-sans: Inter, sans-serif;
+  --font-mono: Fira Code, monospace;
+
+  /* Font sizes */
+  --text-xs: 0.625rem; /* 10px */
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.75rem; /* 12px */
+  --text-sm--line-height: 1rem;
+  --text-base: 0.875rem; /* 14px */
+  --text-base--line-height: 1.25rem;
+  --text-lg: 1rem; /* 16px */
+  --text-lg--line-height: 1.5rem;
+
+  /* Spacing */
+  --spacing: 0.25rem;
+
+  /* Border radius */
+  --radius-xs: 0.125rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-4xl: 2rem;
+
+  /* Shadows */
+  --shadow-2xs: 0 1px rgb(0 0 0 / 0.05);
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl:
+    0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
 
   /* Base colors */
   --color-white: #ffffff;
@@ -386,9 +411,4 @@ export function getTailwindCss() {
   --color-waterloo: #77778c;
   --color-anakiwa: #93b6ff;
 }
-
-body {
-  line-height: inherit;
-}
-  `;
-}
+`;
